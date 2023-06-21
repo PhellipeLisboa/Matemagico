@@ -5,7 +5,6 @@ import random
 import os
 from inimigo import Inimigo
 
-
 pygame.init()
 clock = pygame.time.Clock()
 fps = 60
@@ -22,12 +21,19 @@ wave = 1
 wave_difficulty = 0
 target_difficulty = 7
 difficulty_multiplier = 1.1
-hight_score = 0
+high_score = 0
 game_over = False
 next_wave = False
 enemy_timer = 2500
 last_enemy = pygame.time.get_ticks()
 enemies_alive = 0
+player_result = ''
+player_result_check = ''
+
+# Carregar recorde
+if os.path.exists('recorde.txt'):
+    with open('recorde.txt', 'r') as file:
+        high_score = int(file.read())
 
 # Definindo cores
 
@@ -39,6 +45,9 @@ font1 = pygame.font.SysFont('mspgothic', 25)
 font2 = pygame.font.SysFont('mspgothic', 70)
 # print(pygame.font.get_fonts())
 
+# Carregar imagem da tela inicial
+
+initial_screen = pygame.image.load('imagens/tela inicial/tela inicial.jpg').convert_alpha()
 
 # Carregar imagem de plano de fundo
 background = pygame.image.load('imagens/Plano de fundo/plano de fundo.jpg').convert_alpha()
@@ -101,6 +110,34 @@ for enemy in enemy_types:
     enemy_animation.append(animation_list)
 
 
+def create_operation():
+    # Criando operações
+
+    # Gerar o primeiro e o segundo número e definir o sinal da operação
+    operation_list = ['+', '-', 'x']
+    operation = operation_list[random.randint(0, 2)]
+
+    n1 = random.randint(0, target_difficulty // 1)
+    if target_difficulty // 1 > 10 and operation == 'x':
+        n2 = random.randint(0, 10)
+        while n2 > n1:
+            n2 = random.randint(0, 10)
+    else:
+        n2 = random.randint(0, target_difficulty // 1)
+        while n2 > n1:
+            n2 = random.randint(0, target_difficulty // 1)
+
+    if operation == '+':
+        result = n1 + n2
+    elif operation == '-':
+        result = n1 - n2
+    else:
+        result = n1 * n2
+
+    print(n1, n2)
+    return [n1, n2, operation, str(result)]
+
+
 # Função para escrever textos na tela
 def draw_text(text, font, color, x, y):
     text_img = font.render(text, True, color)
@@ -111,8 +148,15 @@ def draw_text(text, font, color, x, y):
 def show_information():
     draw_text('Vida: ' + str(mage.health) + '/' + str(mage.max_health), font1, black, 215, 610)
     draw_text('Pontuação: ' + str(mage.score), font1, black, 90, 340)
-    draw_text('Recorde:   ' + str(hight_score), font1, black, 90, 370)
+    draw_text('Recorde:   ' + str(high_score), font1, black, 90, 370)
     draw_text('RODADA: ' + str(wave), font2, black, 630, 70)
+    draw_text(f'{operation_info[0]} {operation_info[2]} {operation_info[1]} = ?', font2, black, 610, 160)
+    draw_text(f'RESPOSTA:{player_result}', font2, black, 560, 240)
+
+
+# Função para desenhar a tela inicial
+def draw_initial_screen():
+    screen.blit(initial_screen, (0, 0))
 
 
 # Função para desenhar o plano de fundo
@@ -152,14 +196,14 @@ class Mage(pygame.sprite.Sprite):
         self.rect.center = (x, y)
 
     def atacar(self):
+        global operation_info
         # Soltar bola de fogo
-        if pygame.mouse.get_pressed()[0] and self.attacking is False:
+        if player_result_check == operation_info[3] and self.attacking is False:
             self.attacking = True
             fireball = Fireball(fireball_img2, fireball_animation, self.rect.midright[0] - 50,
                                 self.rect.midright[1] - 55)
             fireball_group.add(fireball)
-        if pygame.mouse.get_pressed()[0] is False:
-            self.attacking = False
+            operation_info = create_operation()
 
     def update(self):
 
@@ -258,10 +302,38 @@ crosshair = Crosshair(0.15)
 fireball_group = pygame.sprite.Group()
 enemy_group = pygame.sprite.Group()
 
+# Criando variaveis da primeira operação
+operation_info = create_operation()
+
+# Tela inicial do jogo (instruções)
+while True:
+    clock.tick(fps)
+
+    # Desenhando a tela inicial
+    draw_initial_screen()
+    if pygame.mouse.get_pressed()[0]:
+        break
+
+    # Desenhando o cursor
+
+    crosshair.draw()
+
+    for event in pygame.event.get():
+        if event.type == QUIT:
+            pygame.quit()
+            exit()
+
+    pygame.display.update()
+
+
+# Tela principal do jogo + game over
 while True:
     clock.tick(fps)
 
     if game_over is False:
+
+        screen.fill(black)
+
         # Desenhando o plano de fundo
         draw_background()
 
@@ -278,10 +350,6 @@ while True:
         mage.update()
         mage.atacar()
 
-        # Desenhando o cursor
-
-        crosshair.draw()
-
         # Desenhando as bolas de fogo
         fireball_group.update()
 
@@ -290,6 +358,9 @@ while True:
 
         # Botando as informações na tela
         show_information()
+
+        # Desenhando o cursor
+        crosshair.draw()
 
         # Criar inimigos
         # Verificar se o número máximo de inimigos foi atingido
@@ -331,9 +402,59 @@ while True:
 
         # Verificando se é game over
         if mage.health <= 0:
+            # Atualizando o recorde
+            if mage.score > high_score:
+                high_score = mage.score
+                with open('recorde.txt', 'w') as file:
+                    file.write(str(high_score))
             game_over = True
 
+    else:
+        # Textos para tela de game over
+        game_over_text = font2.render("GAME OVER", True, (100, 100, 100))
+        score_text = font1.render(f"PONTUAÇÃO: {mage.score}", True, (100, 100, 100))
+        high_score_text = font1.render(f"RECORDE: {high_score}", True, (100, 100, 100))
+        restart_text = font2.render("CLIQUE NA TELA PARA JOGAR NOVAMENTE", True, (81, 81, 81))
+        # Desenhando a tela de game over
+        screen.fill((0, 0, 0))
+        screen.blit(game_over_text, (screen_width / 2 - game_over_text.get_width() / 2, 100))
+        screen.blit(score_text, (screen_width / 2 - score_text.get_width() / 2, 300))
+        screen.blit(high_score_text, (screen_width / 2 - high_score_text.get_width() / 2, 400))
+        screen.blit(restart_text, (screen_width / 2 - restart_text.get_width() / 2, 520))
+        crosshair.draw()
+
+        if pygame.mouse.get_pressed()[0]:
+            # Reiniciando as variáveis do jogo
+            game_over = False
+            wave = 1
+            wave_difficulty = 0
+            target_difficulty = 7
+            last_enemy = pygame.time.get_ticks()
+            enemy_group.empty()
+            fireball_group.empty()
+            mage.score = 0
+            mage.health = 100
+            player_result = ''
+            player_result_check = ''
+
     for event in pygame.event.get():
+        # Inserindo a resposta pelo teclado
+        if event.type == pygame.TEXTINPUT:
+            player_result += event.text
+
+        # Configurando o backspace
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_BACKSPACE:
+                player_result = player_result[:-1]
+
+        # Configurando o envio da resposta
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_RETURN:
+                player_result_check = player_result
+                player_result = ''
+                # Impedindo que o mago ataque em looping
+                mage.attacking = False
+
         if event.type == QUIT:
             pygame.quit()
             exit()
