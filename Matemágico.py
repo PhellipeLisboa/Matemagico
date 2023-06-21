@@ -109,6 +109,13 @@ for enemy in enemy_types:
         animation_list.append(temporary_list)
     enemy_animation.append(animation_list)
 
+# Carregando a musica de fundo
+pygame.mixer.music.load('sons/backgroundmusic.mp3')
+pygame.mixer.music.play(-1)
+fireball_sound = pygame.mixer.Sound('sons/fireball.mp3')
+wave_complete_sound = pygame.mixer.Sound('sons/wavecomplete.mp3')
+game_over_sound = pygame.mixer.Sound('sons/gameover.mp3')
+
 
 def create_operation():
     # Criando operações
@@ -134,7 +141,6 @@ def create_operation():
     else:
         result = n1 * n2
 
-    print(n1, n2)
     return [n1, n2, operation, str(result)]
 
 
@@ -203,6 +209,7 @@ class Mage(pygame.sprite.Sprite):
             fireball = Fireball(fireball_img2, fireball_animation, self.rect.midright[0] - 50,
                                 self.rect.midright[1] - 55)
             fireball_group.add(fireball)
+            fireball_sound.play()
             operation_info = create_operation()
 
     def update(self):
@@ -308,10 +315,12 @@ operation_info = create_operation()
 # Tela inicial do jogo (instruções)
 while True:
     clock.tick(fps)
+    pygame.mixer.music.pause()
 
     # Desenhando a tela inicial
     draw_initial_screen()
     if pygame.mouse.get_pressed()[0]:
+        pygame.mixer.music.unpause()
         break
 
     # Desenhando o cursor
@@ -324,7 +333,6 @@ while True:
             exit()
 
     pygame.display.update()
-
 
 # Tela principal do jogo + game over
 while True:
@@ -391,6 +399,7 @@ while True:
         # Passar para a próxima wave
         if next_wave:
             draw_text('RODADA COMPLETA!', font2, black, 510, 400)
+            wave_complete_sound.play()
 
             if pygame.time.get_ticks() - wave_reset_time > 1500:
                 next_wave = False
@@ -407,6 +416,8 @@ while True:
                 high_score = mage.score
                 with open('recorde.txt', 'w') as file:
                     file.write(str(high_score))
+            pygame.mixer.music.stop()
+            game_over_sound.play()
             game_over = True
 
     else:
@@ -436,6 +447,7 @@ while True:
             mage.health = 100
             player_result = ''
             player_result_check = ''
+            pygame.mixer.music.play(-1)
 
     for event in pygame.event.get():
         # Inserindo a resposta pelo teclado
