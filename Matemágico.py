@@ -47,10 +47,12 @@ font2 = pygame.font.SysFont('mspgothic', 70)
 
 # Carregar imagem da tela inicial
 
-initial_screen = pygame.image.load('imagens/tela inicial/tela inicial.jpg').convert_alpha()
+initial_screen = pygame.image.load(
+    'imagens/tela inicial/tela inicial.jpg').convert_alpha()
 
 # Carregar imagem de plano de fundo
-background = pygame.image.load('imagens/Plano de fundo/plano de fundo.jpg').convert_alpha()
+background = pygame.image.load(
+    'imagens/Plano de fundo/plano de fundo.jpg').convert_alpha()
 
 # Carregar imagem da torre
 tower_img = pygame.image.load('imagens/torre/0.png').convert_alpha()
@@ -76,7 +78,8 @@ for n in range(2):
 # Carregar imagem da bola de fogo
 fireball_animation = []
 for n in range(3):
-    fireball_img = pygame.image.load(f'imagens/bola_de_fogo/{n}.png').convert_alpha()
+    fireball_img = pygame.image.load(
+        f'imagens/bola_de_fogo/{n}.png').convert_alpha()
     fireball_img2 = pygame.transform.scale(fireball_img, (fireball_img.get_width() * 4,
                                                           fireball_img.get_height() * 4))
     fireball_animation.append(fireball_img2)
@@ -101,7 +104,8 @@ for enemy in enemy_types:
         else:
             frames = 4
         for i in range(frames):
-            img = pygame.image.load(f'imagens/inimigos/{enemy}/{animation}/{i}.png').convert_alpha()
+            img = pygame.image.load(
+                f'imagens/inimigos/{enemy}/{animation}/{i}.png').convert_alpha()
             i_w = img.get_width()
             i_h = img.get_height()
             img = pygame.transform.scale(img, (i_w * 2, i_h * 2))
@@ -124,15 +128,15 @@ def create_operation():
     operation_list = ['+', '-', 'x']
     operation = operation_list[random.randint(0, 2)]
 
-    n1 = random.randint(0, target_difficulty // 1)
-    if target_difficulty // 1 > 10 and operation == 'x':
+    n1 = random.randint(0, int(target_difficulty) // 1)
+    if int(target_difficulty) // 1 > 10 and operation == 'x':
         n2 = random.randint(0, 10)
         while n2 > n1:
             n2 = random.randint(0, 10)
     else:
-        n2 = random.randint(0, target_difficulty // 1)
+        n2 = random.randint(0, int(target_difficulty) // 1)
         while n2 > n1:
-            n2 = random.randint(0, target_difficulty // 1)
+            n2 = random.randint(0, int(target_difficulty) // 1)
 
     if operation == '+':
         result = n1 + n2
@@ -152,11 +156,13 @@ def draw_text(text, font, color, x, y):
 
 # Função para mostrar informações
 def show_information():
-    draw_text('Vida: ' + str(mage.health) + '/' + str(mage.max_health), font1, black, 215, 610)
+    draw_text('Vida: ' + str(mage.health) + '/' +
+              str(mage.max_health), font1, black, 215, 610)
     draw_text('Pontuação: ' + str(mage.score), font1, black, 90, 340)
     draw_text('Recorde:   ' + str(high_score), font1, black, 90, 370)
     draw_text('RODADA: ' + str(wave), font2, black, 630, 70)
-    draw_text(f'{operation_info[0]} {operation_info[2]} {operation_info[1]} = ?', font2, black, 610, 160)
+    draw_text(f'{operation_info[0]} {operation_info[2]} {
+              operation_info[1]} = ?', font2, black, 610, 160)
     draw_text(f'RESPOSTA:{player_result}', font2, black, 560, 240)
 
 
@@ -423,15 +429,22 @@ while True:
     else:
         # Textos para tela de game over
         game_over_text = font2.render("GAME OVER", True, (100, 100, 100))
-        score_text = font1.render(f"PONTUAÇÃO: {mage.score}", True, (100, 100, 100))
-        high_score_text = font1.render(f"RECORDE: {high_score}", True, (100, 100, 100))
-        restart_text = font2.render("CLIQUE NA TELA PARA JOGAR NOVAMENTE", True, (81, 81, 81))
+        score_text = font1.render(
+            f"PONTUAÇÃO: {mage.score}", True, (100, 100, 100))
+        high_score_text = font1.render(
+            f"RECORDE: {high_score}", True, (100, 100, 100))
+        restart_text = font2.render(
+            "CLIQUE NA TELA PARA JOGAR NOVAMENTE", True, (81, 81, 81))
         # Desenhando a tela de game over
         screen.fill((0, 0, 0))
-        screen.blit(game_over_text, (screen_width / 2 - game_over_text.get_width() / 2, 100))
-        screen.blit(score_text, (screen_width / 2 - score_text.get_width() / 2, 300))
-        screen.blit(high_score_text, (screen_width / 2 - high_score_text.get_width() / 2, 400))
-        screen.blit(restart_text, (screen_width / 2 - restart_text.get_width() / 2, 520))
+        screen.blit(game_over_text, (screen_width / 2 -
+                    game_over_text.get_width() / 2, 100))
+        screen.blit(score_text, (screen_width / 2 -
+                    score_text.get_width() / 2, 300))
+        screen.blit(high_score_text, (screen_width / 2 -
+                    high_score_text.get_width() / 2, 400))
+        screen.blit(restart_text, (screen_width / 2 -
+                    restart_text.get_width() / 2, 520))
         crosshair.draw()
 
         if pygame.mouse.get_pressed()[0]:
